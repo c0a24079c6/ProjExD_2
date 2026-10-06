@@ -13,6 +13,21 @@ DELTA = {
 }  # こうかとんの移動量を示す辞書
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+
+def check_bound(rect: pg.Rect) -> tuple[bool, bool]:
+    """
+    引数：こうかとん又は爆弾のRect
+    戻り値：タプル（横方向判定結果、縦方向判定結果）
+    画面内ならTrue/画面外ならFalse
+    """
+    horizon, vertical = True, True
+    if rect.left < 0 or WIDTH < rect.right:  # 横方向指定
+        horizon = False
+    if rect.top < 0 or HEIGHT < rect.bottom:  # 縦方向指定
+        vertical = False
+    return horizon, vertical
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -41,8 +56,16 @@ def main():
                 sum_mv[0] += tpl[0]  # こうかとんの横方向の移動量
                 sum_mv[1] += tpl[1]  # こうかとんの縦方向の移動量
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):  # こうかとんがどこかしらはみ出ているなら
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  # 直前の動きをキャンセルする
         screen.blit(kk_img, kk_rct)
+
         bb_rct.move_ip(vx, vy)  # 練習2:爆弾移動
+        horizon, vertical = check_bound(bb_rct)
+        if not horizon:
+            vx *= -1
+        if not vertical:
+            vy *= -1
         screen.blit(bb_img, bb_rct)  # 練習2:爆弾表示
         pg.display.update()
         tmr += 1
