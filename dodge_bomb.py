@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame as pg
+import random
 
 
 WIDTH, HEIGHT = 1100, 650
@@ -9,7 +10,7 @@ DELTA = {
     pg.K_DOWN: (0, +5),
     pg.K_LEFT: (-5, 0),
     pg.K_RIGHT: (+5, 0),
-} #こうかとんの移動量を示す辞書
+}  # こうかとんの移動量を示す辞書
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def main():
@@ -19,6 +20,12 @@ def main():
     kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
+    bb_img = pg.Surface((20, 20))  # 一辺が20のsurfaceの描画
+    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)  # 半径10の丸い赤色の爆弾の描画
+    bb_img.set_colorkey((0, 0, 0))  # 爆弾の背景を透過
+    bb_rct = bb_img.get_rect()  # 爆弾を動かせるようにrect化
+    bb_rct.center = (random.randint(0, WIDTH), random.randint(0, HEIGHT))  # 爆弾のランダムな初期位置
+    vx, vy = +5, +5  # 爆弾の初期速度
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -31,10 +38,12 @@ def main():
         sum_mv = [0, 0]
         for k, tpl in DELTA.items():
             if key_lst[k]:
-                sum_mv[0] += tpl[0] #こうかとんの横方向の移動量
-                sum_mv[1] += tpl[1] #こうかとんの縦方向の移動量
+                sum_mv[0] += tpl[0]  # こうかとんの横方向の移動量
+                sum_mv[1] += tpl[1]  # こうかとんの縦方向の移動量
         kk_rct.move_ip(sum_mv)
         screen.blit(kk_img, kk_rct)
+        bb_rct.move_ip(vx, vy)  # 練習2:爆弾移動
+        screen.blit(bb_img, bb_rct)  # 練習2:爆弾表示
         pg.display.update()
         tmr += 1
         clock.tick(50)
