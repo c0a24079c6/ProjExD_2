@@ -60,17 +60,39 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:  # 爆弾の大きさ�
         bb_img = pg.Surface((20*i, 20*i))  # 大きさの変わる四角の描画
         pg.draw.circle(bb_img, (255, 0, 0), (10*i, 10*i), 10*i)  # 半径の変わる丸い赤色の爆弾の描画
         bb_img.set_colorkey((0, 0, 0))  # 爆弾の背景を透過
-        bb_imgs.append(bb_img)  # 爆弾をタプルの中に格納
+        bb_imgs.append(bb_img)  # 爆弾のサイズをリストの中に格納
     bb_accs = list(range(1, 11))  # 変化する爆弾の速度用のリスト
     return bb_imgs, bb_accs
+
+
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    """
+    引数：なし
+    戻り値：辞書（押下キーに対する移動量の合計値タプルをキー、rotozoomしたSurfaceを値とした）
+    """
+    kk_img = pg.image.load("fig/3.png")
+    kk_img_flip = pg.transform.flip(kk_img, True, False)
+    kk_dict = {
+        (0, 0): pg.transform.rotozoom(kk_img_flip, 0, 0.9),  # 何もキーが押されていない
+        (5, 0): pg.transform.rotozoom(kk_img_flip, 0, 0.9),  # 右に進むとき
+        (-5, 0): pg.transform.rotozoom(kk_img, 0, 0.9),  # 左に進むとき
+        (0, 5): pg.transform.rotozoom(kk_img_flip, -90, 0.9),  # 下に進むとき
+        (0, -5): pg.transform.rotozoom(kk_img_flip, 90, 0.9),  # 上に進むとき
+        (5, 5): pg.transform.rotozoom(kk_img_flip, -45, 0.9),  # 右下に進むとき
+        (-5, 5): pg.transform.rotozoom(kk_img, 45, 0.9),  # 左下に進むとき
+        (5, -5): pg.transform.rotozoom(kk_img_flip, 45, 0.9),  # 右上に進むとき
+        (-5, -5): pg.transform.rotozoom(kk_img, -45, 0.9),  # 左上に進むとき
+    }
+    return kk_dict
 
 
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
-    kk_rct = kk_img.get_rect()
+    # kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_imgs = get_kk_imgs()
+    kk_rct = kk_imgs[(0, 0)].get_rect()
     kk_rct.center = 300, 200
 
     # bb_img = pg.Surface((20, 20))  # 一辺が20のsurfaceの描画
@@ -99,6 +121,7 @@ def main():
             if key_lst[k]:
                 sum_mv[0] += tpl[0]  # こうかとんの横方向の移動量
                 sum_mv[1] += tpl[1]  # こうかとんの縦方向の移動量
+        kk_img = kk_imgs[tuple(sum_mv)]  # 移動方向からこうかとんの向きを変更
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):  # こうかとんがどこかしらはみ出ているなら
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  # 直前の動きをキャンセルする
