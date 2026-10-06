@@ -46,7 +46,6 @@ def gameover(screen: pg.Surface) -> None:  # こうかとんと爆弾が接触�
     screen.blit(end_screen, (0, 0))  # 引数で指定したスクリーンにゲームオーバー画面をblit
     pg.display.update()
     time.sleep(5)
-    return
 
 
 def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:  # 爆弾の大きさと速度が時間経過で変化する関数
