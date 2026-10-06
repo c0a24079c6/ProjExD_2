@@ -29,10 +29,11 @@ def check_bound(rect: pg.Rect) -> tuple[bool, bool]:
     return horizon, vertical
 
 
-def gameover(screen: pg.Surface) -> None:
+def gameover(screen: pg.Surface) -> None:  # こうかとんと爆弾が接触するとゲームオーバー画面を表示する関数
     """
     引数：ゲームオーバー画面を描画したいスクリーン
     戻り値：なし
+    背景を描画しているスクリーンを指定すること
     """
     end_screen = pg.Surface((WIDTH, HEIGHT))  # ゲームオーバー画面の背景
     end_screen.set_alpha(200)  # 背景の透明度を設定
@@ -48,6 +49,22 @@ def gameover(screen: pg.Surface) -> None:
     return
 
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:  # 爆弾の大きさと速度が時間経過で変化する関数
+    """
+    引数：なし
+    戻り値：タプル（異なる大きさの爆弾のリストと爆弾の速度のリスト）
+    """
+    bb_imgs = []
+
+    for i in range(1, 11):
+        bb_img = pg.Surface((20*i, 20*i))  # 大きさの変わる四角の描画
+        pg.draw.circle(bb_img, (255, 0, 0), (10*i, 10*i), 10*i)  # 半径の変わる丸い赤色の爆弾の描画
+        bb_img.set_colorkey((0, 0, 0))  # 爆弾の背景を透過
+        bb_imgs.append(bb_img)  # 爆弾をタプルの中に格納
+    bb_accs = list(range(1, 11))  # 変化する爆弾の速度用のリスト
+    return bb_imgs, bb_accs
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -56,10 +73,11 @@ def main():
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
-    bb_img = pg.Surface((20, 20))  # 一辺が20のsurfaceの描画
-    pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)  # 半径10の丸い赤色の爆弾の描画
-    bb_img.set_colorkey((0, 0, 0))  # 爆弾の背景を透過
-    bb_rct = bb_img.get_rect()  # 爆弾を動かせるようにrect化
+    # bb_img = pg.Surface((20, 20))  # 一辺が20のsurfaceの描画
+    # pg.draw.circle(bb_img, (255, 0, 0), (10, 10), 10)  # 半径10の丸い赤色の爆弾の描画
+    # bb_img.set_colorkey((0, 0, 0))  # 爆弾の背景を透過
+    bb_imgs, bb_accs = init_bb_imgs()
+    bb_rct = bb_imgs[0].get_rect()  # 爆弾を動かせるようにrect化
     bb_rct.center = (random.randint(0, WIDTH), random.randint(0, HEIGHT))  # 爆弾のランダムな初期位置
     vx, vy = +5, +5  # 爆弾の初期速度
 
@@ -86,7 +104,12 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])  # 直前の動きをキャンセルする
         screen.blit(kk_img, kk_rct)
 
-        bb_rct.move_ip(vx, vy)  # 練習2:爆弾移動
+        bb_img = bb_imgs[min(tmr//500, 9)]  # 爆弾の大きさ変更
+        bb_rct.width = bb_img.get_rect().width  # 爆弾の大きさが変わったときにrectのwidthを更新
+        bb_rct.height = bb_img.get_rect().height  # 爆弾の大きさが変わったときにrectのheightを更新
+        avx = vx * bb_accs[min(tmr//500, 9)]  # 時間経過ごとに爆弾の横方向の速度が増加
+        avy = vy * bb_accs[min(tmr//500, 9)]  # 時間経過ごとに爆弾の縦方向の速度が増加
+        bb_rct.move_ip(avx, avy)  # 練習2:爆弾移動
         horizon, vertical = check_bound(bb_rct)
         if not horizon:
             vx *= -1
